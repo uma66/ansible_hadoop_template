@@ -1,0 +1,15 @@
+Host kdc
+  HostName ec2-52-69-18-242.ap-northeast-1.compute.amazonaws.com
+  IdentityFile ./cdh_test.pem
+
+Host client1
+  HostName ec2-54-95-239-78.ap-northeast-1.compute.amazonaws.com
+  IdentityFile ./cdh_test.pem
+
+Host client2
+  HostName ec2-13-230-96-98.ap-northeast-1.compute.amazonaws.com
+  IdentityFile ./cdh_test.pem
+
+Host client3
+  HostName ec2-13-231-35-230.ap-northeast-1.compute.amazonaws.com
+  IdentityFile ./cdh_test.pem

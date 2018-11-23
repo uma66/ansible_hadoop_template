@@ -1,0 +1,7 @@
+[scm-server]
+kdc
+
+[scm-client]
+client1
+client2
+client3

@@ -1,0 +1,11 @@
+
+#- hosts: all
+#  remote_user: '{{ admin_user }}'
+#  become: yes
+#  roles:
+#  - role: os
+
+- hosts: scm-server
+  become: yes
+  roles:
+  - role: scm-server

@@ -1,0 +1,11 @@
+
+# 既存の定義に以下を追加(差し替え)
+
+# 日本標準時に設定
+pool ntp.jst.mfeed.ad.jp iburst
+
+# log出力設定
+logfile /var/log/ntpstats/ntpd.log
+logconfig =all
+
+

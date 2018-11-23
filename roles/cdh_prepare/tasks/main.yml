@@ -1,0 +1,31 @@
+
+# JDK8を転送してインストール
+#- name: be sure JDK8 rpm file is exists
+#  template:
+#    src=jdk-8u162-linux-x64.rpm
+#    dest=/home/cdhadmin/
+#  tags: java
+
+- name: Download jdk
+  command: 'wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie"  http://download.oracle.com/otn-pub/java/jdk/8u181-b13/96a7b8442fe848ef90c96a2fad6ed6d1/jdk-8u181-linux-x64.rpm -P /home/cdhadmin/ creates=/home/cdhadmin/jdk-8u181-linux-x64.rpm'
+
+- name: install jdk8 rpm from a local file
+  yum:
+    name: /home/cdhadmin/jdk-8u181-linux-x64.rpm
+    state: present
+  tags: java
+
+- name: Download cloudera manager bin
+  get_url:
+    url: http://archive.cloudera.com/cm5/installer/latest/cloudera-manager-installer.bin
+    dest: /home/cdhadmin
+    use_proxy: true
+    mode: 0755
+  when: inventory_hostname == 'kdc'
+  tags: cdh
+
+# TODO: CDHクラスタ構築後に実行。↓をしないとspark2-shellでsnappy圧縮でエラーが出る
+#- name: snappy.jar
+#  get_url:
+#    url: http://repo1.maven.org/maven2/org/xerial/snappy/snappy-java/1.1.4/snappy-java-1.1.4.jar
+#    dest: /opt/cloudera/parcels/SPARK2/lib/spark2/jars/

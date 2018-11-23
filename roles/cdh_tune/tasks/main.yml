@@ -1,0 +1,41 @@
+
+
+# TODO: ↓の内容を諸々追加してく
+# https://www.cloudera.com/documentation/enterprise/latest/topics/cdh_admin_performance.html
+# 以下の推奨設定に基づいて設定
+# https://www.cloudera.com/documentation/enterprise/latest/topics/cdh_admin_performance.html#cdh_performance__section_xpq_sdf_jq
+
+# hdfsユーザーとしてJAVA_HOMEにパスを通す(通さないとspark2-shell実行時にエラーになる)
+#- name: be sure JDK8 path is added
+#  lineinfile:
+#    dest: /var/lib/hadoop-hdfs/.bashrc
+#    state: present
+#    regexp: "JAVA_HOME"
+#    insertafter: EOF
+#    line: "export JAVA_HOME={{ java_home }}"
+#  tags: java
+
+- name: enable cer
+  shell: update-ca-trust enable;update-ca-trust extract
+
+# 下記を実行して always madvise [never] になってれば良いっぽい
+- name: Disable Transparent Huge Pages until reboot
+  command: sh -c "echo never > {{ item }}"
+  become: yes
+  with_items:
+    - /sys/kernel/mm/transparent_hugepage/enabled
+    - /sys/kernel/mm/transparent_hugepage/defrag
+
+- name: set transparent_hugepage
+  lineinfile: dest=/etc/rc.d/rc.local state=present create=yes mode=0644 regexp="{{ item }}" insertafter=EOF line="echo never > {{ item }}"
+  with_items:
+    - /sys/kernel/mm/transparent_hugepage/enabled
+    - /sys/kernel/mm/transparent_hugepage/defrag
+  become: yes
+
+- name: Changing perm of "/etc/rc.d/rc.local", adding "+x"
+  file: dest=/etc/rc.d/rc.local mode=a+x
+  become: yes
+
+- name: Set swappiness to 1
+  sysctl: name=vm.swappiness value=1 state=present

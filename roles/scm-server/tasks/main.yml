@@ -1,0 +1,9 @@
+
+#- name: install cloudera manager
+#  command: 'wget http://archive.cloudera.com/cm5/installer/latest/cloudera-manager-installer.bin /home/cdhadmin/ && chmod +x /home/cdhadmin/cloudera-manager-installer.bin && /home/cdhadmin/cloudera-manager-installer.bin'
+
+# これはコンソール上から手動実行しないとエラーになる
+#- name: install cloudera manager
+#  sudo: true
+#  command: '/home/cdhadmin/cloudera-manager-installer.bin --i-agree-to-all-licenses --noprompt --noreadme --nooptions'
+

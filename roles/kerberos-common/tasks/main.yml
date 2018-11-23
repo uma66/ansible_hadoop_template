@@ -1,0 +1,14 @@
+
+- name: be sure kerberos client packages is installed
+  yum:
+    name={{ item }} state=installed
+  with_items:
+      - krb5-workstation
+      - krb5-libs
+  tags: kerberos
+
+- name: be sure kerberos client is configured
+  template:
+    src: krb5.conf.j2
+    dest: /etc/krb5.conf
+  tags: kerberos

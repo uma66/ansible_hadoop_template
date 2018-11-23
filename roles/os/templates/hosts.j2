@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+
+# IPv6を無効化するためコメントアウト。
+#::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+# 参考: https://qiita.com/masa-tu/items/c7b36427fb79bf9f438d
+# ansible_eth0だと全部同じIPになる。ansible_eth1だとvagrantと同じになる。実サーバー環境だとどうなるか不明
+{% for item in ansible_play_batch if hostvars[item]['ansible_default_ipv4'] is defined %}
+{% set short_name = item.split('.') %}
+{{ hostvars[item]['ansible_eth1']['ipv4']['address'] }}  {{ item }}.{{ domain }} {{ short_name[0] }}
+{% endfor %}

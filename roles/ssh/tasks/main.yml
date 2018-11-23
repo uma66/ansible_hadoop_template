@@ -1,0 +1,46 @@
+
+- name: Include vars
+  include_vars:
+    file: ./group_vars/all.yml
+
+- name: Make sure we have a 'wheel' group
+  group:
+    name: wheel
+    state: present
+  tags: user
+
+- name: Allow 'wheel' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+  tags: user
+
+- name: Add admin group
+  group: name={{ admin_user }}
+  tags: user
+
+- name: Add admin user
+  user: name={{ admin_user }} group=wheel append=yes state=present password={{ admin_password }}
+  tags: user
+#
+#- name: mkdir .ssh
+#  file:
+#    path: /home/{{ admin_user }}/.ssh/
+#    state: directory
+#    owner: "{{ admin_user }}"
+#    mode: 0700
+#
+## 公開鍵をリモートホストに登録。以後、ssh -i cdh_rsa vagrant@hostでパスなしで接続できるようになる
+#- name: be sure distributed ssh public key to remote hosts
+##  become_user: "{{ admin_user }}"
+#  authorized_key:
+#    user: "{{ admin_user }}"
+#    key: "{{ lookup('file', 'cdh_rsa.pub') }}"
+#    state: present
+#
+#- name: Disable remote root login
+#  lineinfile: dest=/etc/ssh/sshd_config regexp="^#?PermitRootLogin" line="PermitRootLogin no"
+#  notify: restart sshd

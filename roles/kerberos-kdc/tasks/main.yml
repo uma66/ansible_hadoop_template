@@ -1,0 +1,44 @@
+
+
+- name: be sure openldap is installed
+  yum:
+    name={{ item }} state=installed
+  with_items:
+      - openldap
+      - openldap-clients
+      - openldap-devel
+      - openldap-servers
+  tags: yum
+
+#- name: Copy a ldap db file on the remote machine for editing
+#  copy:
+#    src: /usr/share/openldap-servers/DB_CONFIG.example
+#    dest: /var/lib/ldap/DB_CONFIG
+#    remote_src: yes
+#  notify:
+#    - start ldap
+
+
+- name: be sure kerberos server packages is installed
+  yum:
+    name={{ item }} state=installed
+  with_items:
+      - krb5-server
+      - krb5-workstation
+  tags: kerberos
+
+#- name: be sure kdc server is configured
+#  template:
+#    src: kdc.conf.j2
+#    dest: /var/kerberos/krb5kdc/kdc.conf
+##  notify:
+##    - restart krb5kdc
+##    - restart kadmin
+#  tags: kerberos
+
+- name: Create the initial kerberos database
+  shell: kdb5_util -P {{ kdc_db_pass }} create -s; touch /var/kerberos/db_created creates=/var/kerberos/db_created
+
+- name: shell
+  shell: kadmin.local -q "addprinc -pw {{ kadmin_pass }} {{ kadmin_user }}/admin"; touch /var/kerberos/admin_created creates=/var/kerberos/admin_created
+  tags: kerberos

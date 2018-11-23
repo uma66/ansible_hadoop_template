@@ -1,0 +1,12 @@
+
+- name: start krb5kdc
+  service:
+    name=krb5kdc
+    state=start
+    enabled=yes
+
+- name: start kadmin
+  service:
+    name=kadmin
+    state=start
+    enabled=yes

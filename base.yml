@@ -1,0 +1,15 @@
+
+- hosts: all
+  remote_user: '{{ init_user }}'
+  become: yes
+  roles:
+  - role: ssh
+
+- hosts: all
+  remote_user: '{{ admin_user }}'
+  become: yes
+  roles:
+  - role: os
+  - role: ipv6
+  - role: cdh_prepare
+  - role: cdh_tune

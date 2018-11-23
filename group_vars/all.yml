@@ -1,0 +1,33 @@
+init_user: centos
+
+admin_user: cdhadmin
+admin_group: cdhadmin
+admin_password: cdhadmin
+admin_home: /home/cdhadmin
+
+#http_proxy: "http://proxy.company_name.co.jp:8080"
+#https_proxy: "http://proxy.company_name.co.jp:8080"
+http_proxy: '""'
+https_proxy: '""'
+
+dns_nameservers: ['aaa', 'bbb']
+
+ntp_servers: ['ccc']
+ntp_servers: ['ntp.nict.jp', 'ntp.jst.mfeed.ad.jp']
+
+realm: EXAMPLE.COM
+domain: example.com
+kdc_db_pass: kdcadmin
+kadmin_pass: admin
+kadmin_user: cloudera-scm
+
+#iptables:
+#  accept_tcp_rules:
+#    - { port: 21 }
+#    - { port: 22 }
+#    - { port: 7180 }
+#    - { port: 7182 }
+#    - { port: 3306, source: db.host.name }
+
+bash_histsize: 5000
+bash_histfilesize: 10000

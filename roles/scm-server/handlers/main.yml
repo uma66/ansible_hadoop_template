@@ -1,0 +1,6 @@
+
+- name: start ldap
+  service:
+     name=slapd
+     state=start
+     enabled=yes

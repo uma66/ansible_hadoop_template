@@ -1,0 +1,6 @@
+.DS_Store
+*.pem
+*.pyc
+.idea
+__pycache__
+*.retry

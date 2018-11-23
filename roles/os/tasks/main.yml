@@ -1,0 +1,159 @@
+
+- name: Include vars
+  include_vars:
+    file: ./group_vars/all.yml
+
+- name: be sure /etc/resolv.conf is configured for DNS resolution
+  template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+  tags: network
+
+- name: Ensure hostname fqdn set
+  hostname: name="{{inventory_hostname}}.{{domain}}"
+
+# 参考
+# https://www.cloudera.com/documentation/enterprise/latest/topics/configure_network_names.html
+# https://github.com/gc3-uzh-ch/ansible-playbooks/blob/master/roles/common/tasks/hostname.yml
+- name: Update /etc/hostname file
+  when: ansible_distribution in ['Ubuntu', 'Debian']
+  action: lineinfile dest=/etc/hostname regexp=.* line="{{inventory_hostname}}.{{domain}}" create=yes
+  tags: network
+
+- name: Update /etc/sysconfig/network file
+  when: ansible_distribution == 'CentOS'
+  action: lineinfile dest=/etc/sysconfig/network regexp=^HOSTNAME= line="HOSTNAME={{inventory_hostname}}.{{domain}}"
+  tags: network
+
+# TODO: noproxy環境で設定するとエラーになる
+#- name: be sure setuped yum proxy
+#  lineinfile:
+#    dest: /etc/yum.conf
+#    state: present
+#    regexp: "^proxy="
+#    line: "proxy={{ http_proxy }}"
+#  tags: proxy
+
+# OSセットアップ時にホスト名は設定している前提。hostnamectl set-hostname kdc.example.comのようなfqdn名で。
+# /etc/hostsの書式の参考: https://www.cloudera.com/documentation/enterprise/latest/topics/configure_network_names.html
+- name: be sure /etc/hosts is configured
+  template:
+    src=hosts.j2
+    dest=/etc/hosts
+  tags: network
+
+# こっちでもイケる
+#- name: Ensure hostname is in /etc/hosts
+#  lineinfile:
+#    dest=/etc/hosts
+#    regexp="^{{ ansible_default_ipv4.address }}.+$"
+#    line="{{ ansible_default_ipv4.address }} {{ ansible_fqdn }} {{ ansible_hostname }}"
+
+- name: insert shell proxy(http)
+  lineinfile: dest=/etc/profile.d/proxy.sh state=present create=yes owner=root group=root mode=0644 regexp="{{ item }}"
+              insertafter=EOF line="export {{ item }}={{ http_proxy }}"
+  with_items:
+    - http_proxy
+    - https_proxy
+    - HTTP_PROXY
+    - HTTPS_PROXY
+  ignore_errors: yes
+  tags: proxy
+
+- name: Exec /etc/profile.d/proxy.sh
+  shell: source /etc/profile
+  tags: proxy
+
+#- name: Download company_nameca.cer
+#  get_url:
+#    url: http://www.iss.company_name.co.jp/services/ss/ca/manual/certificate/company_nameca.cer
+#    dest: /etc/pki/ca-trust/source/anchors/
+#    use_proxy: no
+#  tags: ca
+#
+#- name: ca enable
+#  shell: update-ca-trust enable && update-ca-trust extract
+#  tags: ca
+
+- name: install epel release package (centos)
+  yum:
+    name: epel-release
+    state: latest
+  tags: yum
+
+- name: be sure yum packages is installed
+  yum:
+    name={{ item }} state=installed
+  with_items:
+      - curl
+      - nss
+      - vim
+      - wget
+      - ntp
+      - firewalld
+  notify:
+      - disable firewalld
+  tags: yum
+
+- name: be sure ntp is configured
+  template:
+    src: ntp.conf.j2
+    dest: /etc/ntp.conf
+  notify:
+    - restart ntp
+  tags: ntp
+
+- name: be sure selinux is disabled
+  selinux:
+    state: disabled
+  register: selinux
+  tags: selinux
+
+- name: reboot
+  shell: "sleep 2 && reboot"
+  async: 1
+  poll: 0
+  when: selinux.reboot_required
+
+- name: wait stop os
+  local_action: wait_for host={{ inventory_hostname }} port=22 state=stopped
+  when: selinux.reboot_required
+
+- name: wait start os
+  local_action: wait_for host={{ inventory_hostname }} port=22 state=started
+  when: selinux.reboot_required
+
+
+
+#
+#- name: disallow password authentication
+#  lineinfile: >
+#    dest=/etc/ssh/sshd_config
+#    regexp="^#PasswordAuthentication"
+#    line="PasswordAuthentication no"
+##    state=present
+#
+
+#- name: be sure vsftpd is configured
+#  template:
+#    src=vsftpd.conf.j2
+#    dest=/etc/vsftpd/vsftpd.conf
+##  notify:
+##    - start vsftpd
+#  tags: ftp
+#
+#- name: be sure iptables is configured
+#  template:
+#    src=iptables.j2
+#    dest=/etc/sysconfig/iptables
+#  notify:
+#    - restart iptables
+#  tags: iptables
+#
+#- name: update user_list
+#  template:
+#    src=user_list.j2
+#    dest=/etc/vsftpd/user_list
+##  notify:
+##    - start vsftpd
+#  tags: ftp
